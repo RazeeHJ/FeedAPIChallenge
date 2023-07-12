@@ -46,22 +46,20 @@ class LoadFeedFromRemoteUseCaseTests: XCTestCase {
 		}
 	}
 
-	func test_load_deliversInvalidDataErrorOnNon200HTTPResponse() {
+	func test_load_deliversInvalidDataErrorOnNon200HTTPResponse() async throws {
 		let samples = [199, 201, 300, 400, 500]
 
-		samples.enumerated().forEach { index, code in
+		for code in samples {
 			let json = makeItemsJSON([])
 			let httpURLResponse = HTTPURLResponse(url: anyURL(), statusCode: code, httpVersion: nil, headerFields: nil)!
 
 			let (sut, _) = makeSUT(result: (json, httpURLResponse))
 
-			Task {
-				do {
-					let result = try await sut.load()
-					XCTFail("Expected result \(RemoteFeedLoader.Error.invalidData) got \(result) instead")
-				} catch let error as RemoteFeedLoader.Error {
-					XCTAssertEqual(error, .invalidData)
-				}
+			do {
+				let result = try await sut.load()
+				XCTFail("Expected result \(RemoteFeedLoader.Error.invalidData) got \(result) instead")
+			} catch let error as RemoteFeedLoader.Error {
+				XCTAssertEqual(error, .invalidData)
 			}
 		}
 	}
